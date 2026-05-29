@@ -8,11 +8,11 @@ const SPORTS = ["running", "football", "tennis", "padel", "beach_tennis", "cycli
 const LEVELS = ["beginner", "intermediate", "advanced"];
 const FREQUENCIES = ["1-2x", "3-4x", "5+"];
 const BUDGET_PRESETS = [
-  { value: "custom_0_400", label: "Até R$400", min: 0, max: 400 },
-  { value: "custom_400_800", label: "R$400 - R$800", min: 400, max: 800 },
-  { value: "custom_800_1200", label: "R$800 - R$1.200", min: 800, max: 1200 },
-  { value: "custom_1200_2000", label: "R$1.200 - R$2.000", min: 1200, max: 2000 },
-  { value: "custom_2000_99999", label: "Acima de R$2.000", min: 2000, max: 99999 },
+  { value: "custom_0_300", label: "Até R$300", min: 0, max: 300 },
+  { value: "custom_300_600", label: "R$300 - R$600", min: 300, max: 600 },
+  { value: "custom_600_1000", label: "R$600 - R$1.000", min: 600, max: 1000 },
+  { value: "custom_1000_1500", label: "R$1.000 - R$1.500", min: 1000, max: 1500 },
+  { value: "custom_1500_99999", label: "Acima de R$1.500", min: 1500, max: 99999 },
 ];
 const GOALS = ["performance", "comfort", "durability", "style"];
 
@@ -31,13 +31,48 @@ const DISTANCE_OPTIONS = [
 ];
 
 const TERRAIN_OPTIONS = [
-  { value: "road", label: "Asfalto / Rua" },
-  { value: "track", label: "Pista de atletismo" },
-  { value: "trail", label: "Trilha / Terra" },
-  { value: "treadmill", label: "Esteira" },
+  { value: "road", label: "🛣️ Asfalto / Rua" },
+  { value: "track", label: "🏟️ Pista de atletismo" },
+  { value: "trail", label: "🏔️ Trilha / Terra" },
+  { value: "treadmill", label: "🏋️ Esteira" },
 ];
 
-type StepType = "options" | "multi" | "form" | "text" | "running_specific" | "budget_range";
+// Football-specific
+const FOOTBALL_FIELD_OPTIONS = [
+  { value: "natural_grass", label: "⚽ Campo de grama" },
+  { value: "synthetic", label: "🟢 Grama sintética" },
+  { value: "indoor", label: "🏢 Quadra (futsal)" },
+  { value: "society", label: "🏟️ Society" },
+];
+
+// Cycling-specific
+const CYCLING_TYPE_OPTIONS = [
+  { value: "road", label: "🚴 Speed / Estrada" },
+  { value: "mtb", label: "🚵 Mountain Bike" },
+  { value: "urban", label: "🏙️ Urbano / Commute" },
+  { value: "indoor", label: "🏋️ Spinning / Indoor" },
+];
+
+// Fight-specific
+const FIGHT_MODALITY_OPTIONS = [
+  { value: "boxing", label: "🥊 Boxe / Muay Thai" },
+  { value: "bjj", label: "🥋 Jiu-Jitsu" },
+  { value: "mma", label: "🤼 MMA" },
+  { value: "karate", label: "🥋 Karatê / Taekwondo" },
+];
+
+// Sport-specific equipment labels
+const SPORT_EQUIPMENT_LABELS: Record<string, { item: string; placeholder: string }> = {
+  running: { item: "tênis", placeholder: "Ex: Nike Pegasus 40, ASICS Gel-Nimbus 25..." },
+  football: { item: "chuteira", placeholder: "Ex: Nike Mercurial, Adidas Copa Pure..." },
+  tennis: { item: "raquete ou tênis", placeholder: "Ex: Babolat Pure Drive, Wilson Clash..." },
+  padel: { item: "raquete", placeholder: "Ex: Head Flash, Bullpadel Hack..." },
+  beach_tennis: { item: "raquete", placeholder: "Ex: Drop Shot, Quicksand..." },
+  cycling: { item: "bicicleta ou equipamento", placeholder: "Ex: Caloi Speed, capacete Giro..." },
+  fight: { item: "luva ou equipamento", placeholder: "Ex: Everlast Pro Style, Venum Elite..." },
+};
+
+type StepType = "options" | "multi" | "form" | "text" | "budget_range";
 
 interface Step {
   key: string;
@@ -72,8 +107,10 @@ export default function Questionnaire({
 
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
-  const [previousShoe, setPreviousShoe] = useState("");
-  const [shoeFeeling, setShoeFeeling] = useState("");
+  const [previousEquip, setPreviousEquip] = useState("");
+  const [equipFeeling, setEquipFeeling] = useState("");
+
+  const equipLabels = SPORT_EQUIPMENT_LABELS[data.sport] || { item: "equipamento", placeholder: "Ex: marca e modelo..." };
 
   const allSteps: Step[] = [
     {
@@ -94,12 +131,15 @@ export default function Questionnaire({
       type: "options",
       options: FREQUENCIES.map((f) => ({ value: f, label: t(`freq.${f}`) })),
     },
+    // Running-specific: body data (weight matters for shoe selection)
     {
       key: "body",
       title: "Seus dados físicos",
-      subtitle: "Isso nos ajuda a recomendar equipamentos adequados ao seu corpo",
+      subtitle: "Isso nos ajuda a recomendar o tênis ideal para o seu peso",
       type: "form",
+      showIf: () => data.sport === "running",
     },
+    // Running-specific questions
     {
       key: "pronation",
       title: "Qual seu tipo de pisada?",
@@ -118,14 +158,41 @@ export default function Questionnaire({
     {
       key: "terrain",
       title: "Onde você corre normalmente?",
+      subtitle: "Isso define o tipo de solado ideal",
       type: "options",
       options: TERRAIN_OPTIONS,
       showIf: () => data.sport === "running",
     },
+    // Football-specific: field type
     {
-      key: "previous_shoe",
-      title: "Tênis que você já usou",
-      subtitle: "Nos conte sobre sua experiência com tênis anteriores",
+      key: "field_type",
+      title: "Onde você joga normalmente?",
+      subtitle: "O tipo de campo define o solado ideal da chuteira",
+      type: "options",
+      options: FOOTBALL_FIELD_OPTIONS,
+      showIf: () => data.sport === "football",
+    },
+    // Cycling-specific: cycling type
+    {
+      key: "cycling_type",
+      title: "Que tipo de ciclismo você pratica?",
+      type: "options",
+      options: CYCLING_TYPE_OPTIONS,
+      showIf: () => data.sport === "cycling",
+    },
+    // Fight-specific: modality
+    {
+      key: "fight_modality",
+      title: "Qual modalidade de luta você pratica?",
+      type: "options",
+      options: FIGHT_MODALITY_OPTIONS,
+      showIf: () => data.sport === "fight",
+    },
+    // Previous equipment (for ALL sports, but with sport-specific labels)
+    {
+      key: "previous_equip",
+      title: `${equipLabels.item.charAt(0).toUpperCase() + equipLabels.item.slice(1)} que você já usou`,
+      subtitle: `Nos conte sobre sua experiência com ${equipLabels.item} anteriores`,
       type: "text",
     },
     {
@@ -153,9 +220,9 @@ export default function Questionnaire({
       case "goals":
         return data.goals.length > 0;
       case "body":
-        return true; // optional
-      case "previous_shoe":
-        return true; // optional
+        return true;
+      case "previous_equip":
+        return true;
       case "budget":
         if (budgetMode === "custom") {
           return budgetMin !== "" && budgetMax !== "" && Number(budgetMin) < Number(budgetMax);
@@ -167,7 +234,7 @@ export default function Questionnaire({
   }
 
   function getFieldValue(key: string): string {
-    if (key === "pronation" || key === "distance" || key === "terrain") {
+    if (["pronation", "distance", "terrain", "field_type", "cycling_type", "fight_modality"].includes(key)) {
       return data.specific_needs[key] || "";
     }
     return (data as unknown as Record<string, string>)[key] || "";
@@ -181,7 +248,7 @@ export default function Questionnaire({
           ? prev.goals.filter((g) => g !== value)
           : [...prev.goals, value],
       }));
-    } else if (["pronation", "distance", "terrain"].includes(key)) {
+    } else if (["pronation", "distance", "terrain", "field_type", "cycling_type", "fight_modality"].includes(key)) {
       setData((prev) => ({
         ...prev,
         specific_needs: { ...prev.specific_needs, [key]: value },
@@ -202,7 +269,6 @@ export default function Questionnaire({
           budget_max: Number(budgetMax),
         }));
       } else {
-        // preset was already saved via handleSelect, just ensure min/max are set
         const preset = BUDGET_PRESETS.find((p) => p.value === data.budget);
         if (preset) {
           setData((prev) => ({
@@ -214,7 +280,7 @@ export default function Questionnaire({
       }
     }
 
-    // Save body data into specific_needs
+    // Save body data
     if (currentStep.key === "body") {
       setData((prev) => ({
         ...prev,
@@ -225,13 +291,13 @@ export default function Questionnaire({
         },
       }));
     }
-    if (currentStep.key === "previous_shoe") {
+    if (currentStep.key === "previous_equip") {
       setData((prev) => ({
         ...prev,
         specific_needs: {
           ...prev.specific_needs,
-          ...(previousShoe ? { previous_shoe: previousShoe } : {}),
-          ...(shoeFeeling ? { shoe_feeling: shoeFeeling } : {}),
+          ...(previousEquip ? { previous_equipment: previousEquip } : {}),
+          ...(equipFeeling ? { equipment_feeling: equipFeeling } : {}),
         },
       }));
     }
@@ -250,9 +316,7 @@ export default function Questionnaire({
       return (
         <div className="space-y-4 mb-8">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Peso (kg)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Peso (kg)</label>
             <input
               type="number"
               step="0.1"
@@ -263,9 +327,7 @@ export default function Questionnaire({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Altura (cm)
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Altura (cm)</label>
             <input
               type="number"
               value={height}
@@ -283,24 +345,24 @@ export default function Questionnaire({
         <div className="space-y-4 mb-8">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Qual tênis você usa atualmente ou já usou? (opcional)
+              Qual {equipLabels.item} você usa ou já usou? (opcional)
             </label>
             <input
               type="text"
-              value={previousShoe}
-              onChange={(e) => setPreviousShoe(e.target.value)}
-              placeholder="Ex: Nike Pegasus 40, ASICS Gel-Nimbus 25..."
+              value={previousEquip}
+              onChange={(e) => setPreviousEquip(e.target.value)}
+              placeholder={equipLabels.placeholder}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              O que gostou ou não gostou nele? (opcional)
+              O que gostou ou não gostou? (opcional)
             </label>
             <textarea
-              value={shoeFeeling}
-              onChange={(e) => setShoeFeeling(e.target.value)}
-              placeholder="Ex: Achei pesado demais, mas o amortecimento era bom..."
+              value={equipFeeling}
+              onChange={(e) => setEquipFeeling(e.target.value)}
+              placeholder="Ex: Achei pesado demais, mas a qualidade era boa..."
               rows={3}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white resize-none"
             />
@@ -312,7 +374,6 @@ export default function Questionnaire({
     if (currentStep.type === "budget_range") {
       return (
         <div className="space-y-4 mb-8">
-          {/* Mode toggle */}
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setBudgetMode("preset")}
@@ -362,9 +423,7 @@ export default function Questionnaire({
           ) : (
             <div className="flex gap-4 items-end">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mínimo (R$)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Mínimo (R$)</label>
                 <input
                   type="number"
                   value={budgetMin}
@@ -375,9 +434,7 @@ export default function Questionnaire({
               </div>
               <span className="text-gray-400 pb-3 text-lg">—</span>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Máximo (R$)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Máximo (R$)</label>
                 <input
                   type="number"
                   value={budgetMax}
@@ -423,9 +480,7 @@ export default function Questionnaire({
             >
               <span className="text-sm font-medium block">{opt.label}</span>
               {opt.desc && (
-                <span className="text-xs text-gray-500 block mt-1">
-                  {opt.desc}
-                </span>
+                <span className="text-xs text-gray-500 block mt-1">{opt.desc}</span>
               )}
             </button>
           );
@@ -447,9 +502,7 @@ export default function Questionnaire({
         ))}
       </div>
 
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">
-        {currentStep?.title}
-      </h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentStep?.title}</h2>
       {currentStep?.subtitle && (
         <p className="text-gray-500 text-sm mb-6">{currentStep.subtitle}</p>
       )}

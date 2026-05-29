@@ -39,7 +39,17 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="bg-white p-8 rounded-xl shadow-sm border border-gray-200 space-y-5">
           {error && (
             <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg text-sm">
-              {error}
+              {error === "Invalid credentials" ? (
+                <>
+                  Conta não encontrada. O servidor pode ter reiniciado.{" "}
+                  <Link href="/register" className="font-semibold underline">
+                    Crie uma nova conta
+                  </Link>{" "}
+                  (é rápido!)
+                </>
+              ) : (
+                error
+              )}
             </div>
           )}
 

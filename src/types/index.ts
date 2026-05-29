@@ -25,6 +25,7 @@ export interface Product {
   tags: string[];
   rating: number;
   review_count: number;
+  buy_links: Record<string, string>;
 }
 
 export interface Recommendation {
