@@ -30,6 +30,7 @@ export interface Product {
 export interface Recommendation {
   product: Product;
   score: number;
+  match_percent: number;
   reasons: string[];
 }
 
@@ -38,6 +39,8 @@ export interface QuestionnaireData {
   level: string;
   frequency: string;
   budget: string;
+  budget_min: number;
+  budget_max: number;
   goals: string[];
   specific_needs: Record<string, string>;
 }

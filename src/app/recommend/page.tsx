@@ -74,14 +74,27 @@ export default function RecommendPage() {
         {recommendations.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-500 text-lg">{t("rec.empty")}</p>
+            <p className="text-gray-400 text-sm mt-2">
+              Tente ajustar seu orçamento ou objetivos
+            </p>
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendations.map((rec) => (
+            {recommendations.map((rec, idx) => (
               <div key={rec.product.id} className="relative">
-                <div className="absolute -top-2 -right-2 z-10 bg-emerald-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                  {Math.round(rec.score * 10)}% match
+                {/* Match percentage badge */}
+                <div className={`absolute -top-3 -right-3 z-10 text-white text-sm font-bold w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
+                  rec.match_percent >= 85 ? "bg-emerald-500" :
+                  rec.match_percent >= 65 ? "bg-emerald-400" :
+                  rec.match_percent >= 45 ? "bg-yellow-500" : "bg-orange-400"
+                }`}>
+                  {rec.match_percent}%
                 </div>
+                {idx === 0 && (
+                  <div className="absolute -top-3 -left-3 z-10 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-1 rounded-full shadow">
+                    ⭐ Top Pick
+                  </div>
+                )}
                 <ProductCard product={rec.product} reasons={rec.reasons} />
               </div>
             ))}

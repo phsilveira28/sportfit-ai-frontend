@@ -7,7 +7,13 @@ import { QuestionnaireData } from "@/types";
 const SPORTS = ["running", "football", "tennis", "padel", "beach_tennis", "cycling", "fight"];
 const LEVELS = ["beginner", "intermediate", "advanced"];
 const FREQUENCIES = ["1-2x", "3-4x", "5+"];
-const BUDGETS = ["low", "medium", "high"];
+const BUDGET_PRESETS = [
+  { value: "custom_0_400", label: "Até R$400", min: 0, max: 400 },
+  { value: "custom_400_800", label: "R$400 - R$800", min: 400, max: 800 },
+  { value: "custom_800_1200", label: "R$800 - R$1.200", min: 800, max: 1200 },
+  { value: "custom_1200_2000", label: "R$1.200 - R$2.000", min: 1200, max: 2000 },
+  { value: "custom_2000_99999", label: "Acima de R$2.000", min: 2000, max: 99999 },
+];
 const GOALS = ["performance", "comfort", "durability", "style"];
 
 const PRONATION_OPTIONS = [
@@ -31,7 +37,7 @@ const TERRAIN_OPTIONS = [
   { value: "treadmill", label: "Esteira" },
 ];
 
-type StepType = "options" | "multi" | "form" | "text" | "running_specific";
+type StepType = "options" | "multi" | "form" | "text" | "running_specific" | "budget_range";
 
 interface Step {
   key: string;
@@ -54,9 +60,15 @@ export default function Questionnaire({
     level: "",
     frequency: "",
     budget: "",
+    budget_min: 0,
+    budget_max: 99999,
     goals: [],
     specific_needs: {},
   });
+
+  const [budgetMin, setBudgetMin] = useState("");
+  const [budgetMax, setBudgetMax] = useState("");
+  const [budgetMode, setBudgetMode] = useState<"preset" | "custom">("preset");
 
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
@@ -118,9 +130,9 @@ export default function Questionnaire({
     },
     {
       key: "budget",
-      title: t("questionnaire.budget"),
-      type: "options",
-      options: BUDGETS.map((b) => ({ value: b, label: t(`budget.${b}`) })),
+      title: "Qual seu orçamento?",
+      subtitle: "Escolha uma faixa ou defina valores personalizados",
+      type: "budget_range",
     },
     {
       key: "goals",
@@ -144,6 +156,11 @@ export default function Questionnaire({
         return true; // optional
       case "previous_shoe":
         return true; // optional
+      case "budget":
+        if (budgetMode === "custom") {
+          return budgetMin !== "" && budgetMax !== "" && Number(budgetMin) < Number(budgetMax);
+        }
+        return data.budget !== "";
       default:
         return getFieldValue(currentStep.key) !== "";
     }
@@ -175,6 +192,28 @@ export default function Questionnaire({
   }
 
   function handleNext() {
+    // Save budget range
+    if (currentStep.key === "budget") {
+      if (budgetMode === "custom") {
+        setData((prev) => ({
+          ...prev,
+          budget: "",
+          budget_min: Number(budgetMin),
+          budget_max: Number(budgetMax),
+        }));
+      } else {
+        // preset was already saved via handleSelect, just ensure min/max are set
+        const preset = BUDGET_PRESETS.find((p) => p.value === data.budget);
+        if (preset) {
+          setData((prev) => ({
+            ...prev,
+            budget_min: preset.min,
+            budget_max: preset.max,
+          }));
+        }
+      }
+    }
+
     // Save body data into specific_needs
     if (currentStep.key === "body") {
       setData((prev) => ({
@@ -266,6 +305,95 @@ export default function Questionnaire({
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white resize-none"
             />
           </div>
+        </div>
+      );
+    }
+
+    if (currentStep.type === "budget_range") {
+      return (
+        <div className="space-y-4 mb-8">
+          {/* Mode toggle */}
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={() => setBudgetMode("preset")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                budgetMode === "preset"
+                  ? "bg-emerald-500 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              Faixas pré-definidas
+            </button>
+            <button
+              onClick={() => setBudgetMode("custom")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                budgetMode === "custom"
+                  ? "bg-emerald-500 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              Personalizado
+            </button>
+          </div>
+
+          {budgetMode === "preset" ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {BUDGET_PRESETS.map((preset) => (
+                <button
+                  key={preset.value}
+                  onClick={() => {
+                    setData((prev) => ({
+                      ...prev,
+                      budget: preset.value,
+                      budget_min: preset.min,
+                      budget_max: preset.max,
+                    }));
+                  }}
+                  className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    data.budget === preset.value
+                      ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                      : "border-gray-200 hover:border-gray-300 text-gray-700 bg-white"
+                  }`}
+                >
+                  <span className="text-sm font-medium">{preset.label}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mínimo (R$)
+                </label>
+                <input
+                  type="number"
+                  value={budgetMin}
+                  onChange={(e) => setBudgetMin(e.target.value)}
+                  placeholder="Ex: 300"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
+                />
+              </div>
+              <span className="text-gray-400 pb-3 text-lg">—</span>
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Máximo (R$)
+                </label>
+                <input
+                  type="number"
+                  value={budgetMax}
+                  onChange={(e) => setBudgetMax(e.target.value)}
+                  placeholder="Ex: 800"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white"
+                />
+              </div>
+            </div>
+          )}
+
+          {budgetMode === "custom" && budgetMin && budgetMax && Number(budgetMin) < Number(budgetMax) && (
+            <p className="text-sm text-emerald-600 mt-2">
+              Buscando produtos entre R${Number(budgetMin).toLocaleString("pt-BR")} e R${Number(budgetMax).toLocaleString("pt-BR")}
+            </p>
+          )}
         </div>
       );
     }
