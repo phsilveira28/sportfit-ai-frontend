@@ -98,59 +98,61 @@ export default function RecommendPage() {
             </button>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {recommendations.map((rec, idx) => (
-              <div key={rec.product.id} className="relative">
-                {/* Match percentage badge */}
-                <div className={`absolute -top-3 -right-3 z-10 text-white text-sm font-bold w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
-                  rec.match_percent >= 85 ? "bg-emerald-500" :
-                  rec.match_percent >= 65 ? "bg-emerald-400" :
-                  rec.match_percent >= 45 ? "bg-yellow-500" : "bg-orange-400"
-                }`}>
-                  {rec.match_percent}%
-                </div>
-                {idx === 0 && (
-                  <div className="absolute -top-3 -left-3 z-10 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-1 rounded-full shadow">
-                    ⭐ Top Pick
+          <>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendations.map((rec, idx) => (
+                <div key={rec.product.id} className="relative">
+                  {/* Match percentage badge */}
+                  <div className={`absolute -top-3 -right-3 z-10 text-white text-sm font-bold w-12 h-12 rounded-full flex items-center justify-center shadow-lg ${
+                    rec.match_percent >= 85 ? "bg-emerald-500" :
+                    rec.match_percent >= 65 ? "bg-emerald-400" :
+                    rec.match_percent >= 45 ? "bg-yellow-500" : "bg-orange-400"
+                  }`}>
+                    {rec.match_percent}%
                   </div>
-                )}
-                {/* Compare checkbox */}
-                <button
-                  onClick={() => toggleCompare(rec.product.id)}
-                  className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
-                    compareIds.includes(rec.product.id)
-                      ? "bg-blue-500 border-blue-500 text-white"
-                      : "bg-white/80 border-gray-300 text-transparent hover:border-blue-400"
-                  }`}
-                  title="Adicionar à comparação"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
-                <ProductCard product={rec.product} reasons={rec.reasons} />
-              </div>
-            ))}
-          </div>
-
-          {/* Floating compare bar */}
-          {compareIds.length >= 2 && (
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-4">
-              <span className="text-sm font-medium">{compareIds.length} selecionados</span>
-              <Link
-                href={`/compare?ids=${compareIds.join(",")}`}
-                className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-bold hover:bg-blue-50 transition-colors"
-              >
-                Comparar →
-              </Link>
-              <button
-                onClick={() => setCompareIds([])}
-                className="text-blue-200 hover:text-white text-xs"
-              >
-                Limpar
-              </button>
+                  {idx === 0 && (
+                    <div className="absolute -top-3 -left-3 z-10 bg-amber-400 text-amber-900 text-xs font-bold px-2 py-1 rounded-full shadow">
+                      ⭐ Top Pick
+                    </div>
+                  )}
+                  {/* Compare checkbox */}
+                  <button
+                    onClick={() => toggleCompare(rec.product.id)}
+                    className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
+                      compareIds.includes(rec.product.id)
+                        ? "bg-blue-500 border-blue-500 text-white"
+                        : "bg-white/80 border-gray-300 text-transparent hover:border-blue-400"
+                    }`}
+                    title="Adicionar à comparação"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                  <ProductCard product={rec.product} reasons={rec.reasons} />
+                </div>
+              ))}
             </div>
-          )}
+
+            {/* Floating compare bar */}
+            {compareIds.length >= 2 && (
+              <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-4">
+                <span className="text-sm font-medium">{compareIds.length} selecionados</span>
+                <Link
+                  href={`/compare?ids=${compareIds.join(",")}`}
+                  className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-bold hover:bg-blue-50 transition-colors"
+                >
+                  Comparar →
+                </Link>
+                <button
+                  onClick={() => setCompareIds([])}
+                  className="text-blue-200 hover:text-white text-xs"
+                >
+                  Limpar
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     );
