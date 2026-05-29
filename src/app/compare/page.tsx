@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { api } from "@/lib/api";
@@ -27,7 +27,7 @@ const CATEGORY_EMOJI: Record<string, string> = {
   clothing: "👕", accessories: "🎒",
 };
 
-export default function ComparePage() {
+function CompareContent() {
   const { t } = useLocale();
   const searchParams = useSearchParams();
   const ids = searchParams.get("ids")?.split(",").map(Number).filter(Boolean) || [];
@@ -172,5 +172,17 @@ export default function ComparePage() {
         </table>
       </div>
     </div>
+  );
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full" />
+      </div>
+    }>
+      <CompareContent />
+    </Suspense>
   );
 }
