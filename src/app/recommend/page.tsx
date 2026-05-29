@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/contexts/LocaleContext";
 import Questionnaire from "@/components/Questionnaire";
@@ -16,6 +17,13 @@ export default function RecommendPage() {
   const [recommendations, setRecommendations] = useState<Recommendation[] | null>(null);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState("");
+  const [compareIds, setCompareIds] = useState<number[]>([]);
+
+  function toggleCompare(id: number) {
+    setCompareIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 3 ? [...prev, id] : prev
+    );
+  }
 
   if (loading) {
     return (
@@ -106,10 +114,43 @@ export default function RecommendPage() {
                     ⭐ Top Pick
                   </div>
                 )}
+                {/* Compare checkbox */}
+                <button
+                  onClick={() => toggleCompare(rec.product.id)}
+                  className={`absolute top-2 left-2 z-10 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all ${
+                    compareIds.includes(rec.product.id)
+                      ? "bg-blue-500 border-blue-500 text-white"
+                      : "bg-white/80 border-gray-300 text-transparent hover:border-blue-400"
+                  }`}
+                  title="Adicionar à comparação"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
                 <ProductCard product={rec.product} reasons={rec.reasons} />
               </div>
             ))}
           </div>
+
+          {/* Floating compare bar */}
+          {compareIds.length >= 2 && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-4">
+              <span className="text-sm font-medium">{compareIds.length} selecionados</span>
+              <Link
+                href={`/compare?ids=${compareIds.join(",")}`}
+                className="bg-white text-blue-600 px-4 py-1.5 rounded-full text-sm font-bold hover:bg-blue-50 transition-colors"
+              >
+                Comparar →
+              </Link>
+              <button
+                onClick={() => setCompareIds([])}
+                className="text-blue-200 hover:text-white text-xs"
+              >
+                Limpar
+              </button>
+            </div>
+          )}
         )}
       </div>
     );
