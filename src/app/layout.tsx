@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
@@ -8,12 +8,15 @@ const geist = Geist({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#10b981",
+};
+
 export const metadata: Metadata = {
   title: "SportFit AI - Recomendações de Equipamentos Esportivos",
   description:
     "Plataforma de IA para recomendação personalizada de equipamentos esportivos",
   manifest: "/manifest.json",
-  themeColor: "#10b981",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
