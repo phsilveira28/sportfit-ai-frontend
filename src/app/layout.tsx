@@ -12,6 +12,17 @@ export const metadata: Metadata = {
   title: "SportFit AI - Recomendações de Equipamentos Esportivos",
   description:
     "Plataforma de IA para recomendação personalizada de equipamentos esportivos",
+  manifest: "/manifest.json",
+  themeColor: "#10b981",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SportFit AI",
+  },
+  icons: {
+    icon: "/icons/icon.svg",
+    apple: "/icons/icon-192.png",
+  },
 };
 
 export default function RootLayout({
